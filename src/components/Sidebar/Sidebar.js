@@ -64,7 +64,7 @@ const Sidebar = () => {
     const content = id ? id.charAt(0).toUpperCase() + id.substring(1) : 'Home page';
 
     //     const client = createDirectus('http://localhost:8055/').with(staticToken('qmT4Gu0ok2irschFc5vh9QZs3RpyNL60')).with(rest({credentials:'include'}));
-    const client = createDirectus('http://localhost:8055/')
+    const client = createDirectus('https://renderfarm.jewelpreview.com/')
         .with(staticToken('0AJzuH56xvfEl2lXCt0uu7Tz0aCmfY3y'))
         .with(rest());
 

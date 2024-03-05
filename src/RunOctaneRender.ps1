@@ -8,15 +8,21 @@ param(
     [string]$octanePath     # Path to the Octane directory (e.g., d:\RenderFarm\octane)
 )
 
+Write-Host "JobPath = $jobPath"
+Write-Host "AssetsPath = $assetsPath"
+Write-Host "OutputPath = $outputPath"
+Write-Host "OutputDir = $outputDir"
+Write-Host "OctanePath = $octanePath"
+
 # Construct the full command with arguments
 $octaneCommand = "$octanePath\octane-cli.exe"
-$scriptPath = "$assetsPath\script.lua"
+$scriptPath = "$assetsPath\Render\HK-R0.lua"
 $outputFullPath = "$outputPath\$outputDir"
-$scenePath = "$jobPath\scene.ocs"
+$scenePath = "HK-R0.ocs"
 
 # Construct the argument list for octane-cli.exe
 $arguments = @(
-    "-s", $scriptPath,     # Specifies the script path
+    "--script", $scriptPath,     # Specifies the script path
     "-a", "1",             # Argument for the script (static value as per example)
     "-a", "1",             # Another argument (static value)
     "-a", "100",           # Another argument (static value)
@@ -24,6 +30,9 @@ $arguments = @(
     "-a", "PNG8",          # Output format
     $scenePath             # Specifies the .ocs scene file
 )
+
+#Move to the right directory
+Set-Location "$jobPath"
 
 # Print the command to be executed (for debugging/verification)
 Write-Host "Executing command: $octaneCommand" -ForegroundColor Cyan
