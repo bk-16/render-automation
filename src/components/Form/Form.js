@@ -88,7 +88,7 @@ const Form = ({content, connectedClients, successMessage, errorMessage, setIsSho
             setConnectedClients(data);
         });*/
 
-        newSocket.on('NEW_JOB', (data) => {
+       /* newSocket.on('NEW_JOB', (data) => {
             const { command:commandrun, taskid } = data;
             setNewJob(`Recieved command :--> ${commandrun} and task id :--> ${taskid}`)
             console.log(commandrun, "Recieved command and task id", taskid);
@@ -99,6 +99,7 @@ const Form = ({content, connectedClients, successMessage, errorMessage, setIsSho
             setJobDone(data.result)
             console.log(data, "This is client 2");
         })
+        */
     }, []);
 
     console.log('jobDone=>', jobDone);
@@ -141,7 +142,7 @@ const Form = ({content, connectedClients, successMessage, errorMessage, setIsSho
                                         >
                                             <Listbox.Options
                                                 className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                {connectedClients.map((person, index) => (
+                                                {[].map((person, index) => (
                                                     <Listbox.Option
                                                         key={index}
                                                         className={({active}) =>

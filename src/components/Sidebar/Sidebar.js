@@ -219,12 +219,12 @@ const Sidebar = () => {
 */
 
 
-        newSocket.on("connectedClients", (data) => {
+       /* newSocket.on("connectedClients", (data) => {
             console.log("connectedClientsSidebar=>", data);
 
             setConnectedClients(data);
         });
-
+    */
 
 
     }, []);
@@ -284,13 +284,19 @@ const Sidebar = () => {
 
         const { job_path, assets_path, output_path, output_dir, octane_path } = renderJobsData[0];
         console.log('abc', job_path)
+        console.log('beforeCommandoutput');
         // callRunOctaneRender(job_path, assets_path, output_path, output_dir, octane_path);
         const command = Command.sidecar('binaries/render');
-        const output = await command.execute();
+        const { output, error } = await command.execute();
+
+        if (error) {
+            console.error('Error:', error);
+        } else {
+            console.log('Output:', output);
+        }
 
         setSuccessMessage(output);
-
-            setIsShow(true);
+        setIsShow(true);
 
 
 
