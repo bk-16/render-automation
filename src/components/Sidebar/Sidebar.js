@@ -20,6 +20,9 @@ import { appLocalDataDir, documentDir, appDataDir, dirname, path } from "@tauri-
 import { invoke } from '@tauri-apps/api/tauri'
 import { createDirectus, readItems, rest, staticToken, withOptions, refresh } from '@directus/sdk';
 import { Command } from '@tauri-apps/api/shell'
+import { listen } from '@tauri-apps/api/event';
+
+
 
 Airtable.configure({
     apiKey: `${process.env.REACT_APP_AIRTABLE_API_KEY}`
@@ -286,7 +289,9 @@ const Sidebar = () => {
         console.log('abc', job_path)
         console.log('beforeCommandoutput');
         // callRunOctaneRender(job_path, assets_path, output_path, output_dir, octane_path);
-        const command = Command.sidecar('binaries/render');
+
+
+       /* const command = Command.sidecar('binaries/render');
         const { output, error } = await command.execute();
 
         if (error) {
@@ -294,8 +299,54 @@ const Sidebar = () => {
         } else {
             console.log('Output:', output);
         }
+        */
 
-        setSuccessMessage(output);
+ 
+        const callRunOctaneRender = async () => {
+        
+            // try {
+            //     await invoke('start_sidecar', "render");
+            //     console.log('Render command executed successfully');
+            //     setSuccessMessage('Render command executed successfully');
+            // } catch (error) {
+            //     console.error('Failed to execute render command:', error);
+            //     setErrorMessage(error);
+            // }
+
+           async function startSidecar() {
+                try {
+                    const response = await invoke('start_sidecar', "render");
+                    console.log('Output:', response);
+                    setSuccessMessage(response);
+                } catch (error) {
+               
+                    console.error('Error starting sidecar:', error);
+                    setErrorMessage(error);
+                }
+            }
+
+            // listen("sidecar_output", (event) => {
+            //     const outputLine = event.payload;
+            //     setSuccessMessage(outputLine);
+            //     console.log('Output from sidecar:', outputLine);
+            // });
+
+            // invoke('sidecar_output').then((response) => {
+
+            //     setSuccessMessage(response)
+            //     console.log('Output:', response);
+            // }).catch((error) => {
+            //     setErrorMessage(error)
+            //     console.error('Error starting sidecar:', error);
+            // });
+            
+            startSidecar();
+    
+        }
+
+        callRunOctaneRender();
+
+       // setSuccessMessage(output);
         setIsShow(true);
 
 
@@ -780,6 +831,7 @@ const Sidebar = () => {
                                                             Connect
                                                         </button>
                                                         {successMessage}
+                                                        {errorMessage}
                                                     </div>
                                                 </div>
                                             </div>
