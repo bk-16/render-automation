@@ -773,6 +773,7 @@ const Sidebar = () => {
                                                         >
                                                             Connect
                                                         </button>
+                                                        {successMessage}
                                                     </div>
                                                 </div>
                                             </div>
