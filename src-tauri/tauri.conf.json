@@ -23,11 +23,7 @@
         "sidecar": true,
         "open": true,
         "scope": [
-          {
-            "name": "powershell",
-            "cmd": "powershell",
-            "args": true
-          }
+          { "name": "binaries/render", "sidecar": true }
         ]
       }
     },
@@ -38,7 +34,9 @@
       "deb": {
         "depends": []
       },
-      "externalBin": [],
+      "externalBin": [
+        "binaries/render"
+      ],
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",

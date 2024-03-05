@@ -19,6 +19,7 @@ import { newSocket } from "../../socket";
 import { appLocalDataDir, documentDir, appDataDir, dirname, path } from "@tauri-apps/api/path";
 import { invoke } from '@tauri-apps/api/tauri'
 import { createDirectus, readItems, rest, staticToken, withOptions, refresh } from '@directus/sdk';
+import { Command } from '@tauri-apps/api/shell'
 
 Airtable.configure({
     apiKey: `${process.env.REACT_APP_AIRTABLE_API_KEY}`
@@ -283,8 +284,11 @@ const Sidebar = () => {
 
         const { job_path, assets_path, output_path, output_dir, octane_path } = renderJobsData[0];
         console.log('abc', job_path)
-        callRunOctaneRender(job_path, assets_path, output_path, output_dir, octane_path);
+        // callRunOctaneRender(job_path, assets_path, output_path, output_dir, octane_path);
+        const command = Command.sidecar('binaries/render');
+        const output = await command.execute();
 
+        setSuccessMessage(output);
 
             setIsShow(true);
 
