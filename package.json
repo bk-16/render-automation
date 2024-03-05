@@ -1,0 +1,60 @@
+{
+  "name": "tauri-app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@directus/sdk": "^15.0.1",
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
+    "@tauri-apps/api": "^1.5.2",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "airtable": "^0.12.2",
+    "axios": "^1.6.7",
+    "fs": "^0.0.1-security",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.1",
+    "react-scripts": "5.0.1",
+    "socket.io-client": "^4.7.2",
+    "tauri-react": "^0.1.0",
+    "uuid": "^9.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "tauri:b": "tauri build",
+    "checkPath": "node checkPath.js"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.7",
+    "@tauri-apps/cli": "^1.5.7",
+    "cross-env": "^7.0.3",
+    "tailwindcss": "^3.3.6"
+  },
+  "resolutions": {
+    "mini-css-extract-plugin": "2.4.7"
+  }
+}
