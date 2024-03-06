@@ -13,7 +13,7 @@ import {
 import { CheckIcon, ChevronDownIcon, ChevronUpDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import Form from "../Form/Form";
 import { appWindow } from "@tauri-apps/api/window";
-import Airtable from 'airtable';
+// import Airtable from 'airtable';
 import Table from "../Table/Table";
 import { newSocket } from "../../socket";
 import { appLocalDataDir, documentDir, appDataDir, dirname, path } from "@tauri-apps/api/path";
@@ -449,7 +449,7 @@ const Sidebar = () => {
             ));
 
         setRenderJobsData(renderJobsdata);
-        getRenderNodesData();
+      //  getRenderNodesData();
         const selectedNodeData = disconnectedNodes.filter(item => item?.fields?.Name === selectedNode);
         //    setNodeId(selectedNodeData[0]?.fields?.Node_ID);
         //    console.log('selectedNodeData=>', );
