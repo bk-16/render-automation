@@ -286,22 +286,68 @@ const Sidebar = () => {
             });*/
 
         const { job_path, assets_path, output_path, output_dir, octane_path } = renderJobsData[0];
-        console.log('abc', job_path)
-        console.log('beforeCommandoutput');
+      
         // callRunOctaneRender(job_path, assets_path, output_path, output_dir, octane_path);
 
+        console.log('job_path', job_path);
+        console.log('assets_path', assets_path);
+        console.log('output_path', output_path);
+        console.log('output_dir', output_dir);
+        console.log('octane_path', octane_path);
+      /*  let command = Command.sidecar('binaries/render');
+        const output = await command.execute();
 
-       /* const command = Command.sidecar('binaries/render');
-        const { output, error } = await command.execute();
+         console.log('commandOutput', output); */
 
-        if (error) {
-            console.error('Error:', error);
-        } else {
-            console.log('Output:', output);
-        }
-        */
+        // const output = await new Command('powershell', ["/C", ["binaries/runOctaneRender", job_path, assets_path, output_path, output_dir, octane_path]]).execute();
+        const output = await new Command('powershell', [
+            'binaries/runOctaneRender-x86_64-pc-windows-msvc.ps1',
+            job_path,    
+            assets_path, 
+            output_path, 
+            output_dir, 
+            octane_path  
+        ]).execute();
+        
+         setSuccessMessage(output.stdout);
+         console.log('CommandOutput', output);
 
- 
+        // if (error) {
+        //     console.error('Error:', error);
+        // } else {
+        //     console.log('Output:', output);
+        // }
+        
+        // console.log("registering events")
+
+
+        /*
+        command.on('close', data => {
+            console.log(`Python subprocess ended with code ${data.code} and signal ${data.signal}`)
+            // submitBtn.removeAttribute("disabled")
+        })
+
+        command.on('error', error => console.error(`error: "${error}"`))
+        command.stdout.on('data', line => console.log("stdout:", line)
+            // if (line.startsWith("{")) {
+            //     let data = JSON.parse(line)
+            //     if (data.message === "processing") {
+            //         progress.update(progressBar, (data.current/ data.total) * 100)
+            //     } else if (data.message === "done") {
+            //         submitBtn.removeAttribute("disabled")
+            //     }
+            // }
+        )
+        command.stderr.on('data', line => console.log("stderr:", line))
+
+        // Start the command
+        console.log("Python subprocess started...")
+        let output = await command.execute()
+        console.log('output:', output)
+    */
+
+
+ /*
         const callRunOctaneRender = async () => {
         
             // try {
@@ -315,7 +361,7 @@ const Sidebar = () => {
 
            async function startSidecar() {
                 try {
-                    const response = await invoke('start_sidecar', "render");
+                    const response = await invoke('start_sidecar');
                     console.log('Output:', response);
                     setSuccessMessage(response);
                 } catch (error) {
@@ -323,6 +369,15 @@ const Sidebar = () => {
                     console.error('Error starting sidecar:', error);
                     setErrorMessage(error);
                 }
+
+                listen("message", (event) => {
+                    const message = event.payload;
+                    console.log('Message from Rust:', message);
+                    console.log('event.windowLabel:', event.windowLabel);
+                 
+                    // Handle the message here
+                });
+                
             }
 
             // listen("sidecar_output", (event) => {
@@ -344,10 +399,10 @@ const Sidebar = () => {
     
         }
 
-        callRunOctaneRender();
+        callRunOctaneRender(); */
 
        // setSuccessMessage(output);
-        setIsShow(true);
+      //  setIsShow(true);
 
 
 

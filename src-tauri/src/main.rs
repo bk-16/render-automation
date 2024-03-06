@@ -8,7 +8,7 @@ use tauri::api::process::CommandEvent;
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![start_sidecar])
+    .invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -64,26 +64,26 @@ fn main() {
 //     }
 // }
 
-#[tauri::command]
-async fn start_sidecar(window: Window) {
-    let (mut rx, mut child) = Command::new_sidecar("render")
-        .expect("failed to create `my-sidecar` binary command")
-        .spawn()
-        .expect("Failed to spawn sidecar");
+// #[tauri::command]
+// async fn start_sidecar(window: Window) {
+//     let (mut rx, mut child) = Command::new_sidecar("render1")
+//         .expect("failed to create `my-sidecar` binary command")
+//         .spawn()
+//         .expect("Failed to spawn sidecar");
 
-    tauri::async_runtime::spawn(async move {
-        // read events such as stdout
-        while let Some(event) = rx.recv().await {
-            if let CommandEvent::Stdout(line) = event {
-                window
-                    .emit("sidecar_output", Some(format!("'{}'", line)))
-                    .expect("failed to emit event");
-                // write to stdin
-                child.write("message from Rust\n".as_bytes()).unwrap();
-            }
-        }
-    });
-}
+//     tauri::async_runtime::spawn(async move {
+//         // read events such as stdout
+//         while let Some(event) = rx.recv().await {
+//             if let CommandEvent::Stdout(line) = event {
+//                 window
+//                     .emit("message", Some(format!("'{}'", line)))
+//                     .expect("failed to emit event");
+//                 // write to stdin
+//                 child.write("message from Rust\n".as_bytes()).unwrap();
+//             }
+//         }
+//     });
+// }
 
 
 

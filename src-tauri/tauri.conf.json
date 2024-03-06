@@ -23,7 +23,12 @@
         "sidecar": true,
         "open": true,
         "scope": [
-          { "name": "binaries/render", "sidecar": true }
+          {
+            "name": "powershell",
+            "cmd": "powershell",
+            "args": true
+          }
+       
         ]
       }
     },
@@ -35,7 +40,7 @@
         "depends": []
       },
       "externalBin": [
-        "binaries/render"
+        "binaries/runOctaneRender"
       ],
       "icon": [
         "icons/32x32.png",
