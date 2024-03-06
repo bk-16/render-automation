@@ -315,6 +315,26 @@ const Sidebar = () => {
                 output_dir, 
                 octane_path  
             ]).execute();
+
+            const output1 = new Command('powershell', [
+                'binaries/runOctaneRender-x86_64-pc-windows-msvc.ps1',
+                job_path,    
+                assets_path, 
+                output_path, 
+                output_dir, 
+                octane_path  
+            ]);
+
+            output1.on('close', data => {
+                console.log(`command finished with code ${data.code} and signal ${data.signal}`)
+                console.log(`close Data${data}`)
+              });
+              output1.on('error', error => console.error(`command error: "${error}"`));
+              output1.stdout.on('data', line => console.log(`command stdout: "${line}"`));
+              output1.stderr.on('data', line => console.log(`command stderr: "${line}"`));
+              
+              const child = await output1.spawn();
+              console.log('pid:', child.pid);
             
              setSuccessMessage(output.stdout);
     
