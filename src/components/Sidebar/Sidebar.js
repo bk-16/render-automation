@@ -24,11 +24,11 @@ import { listen } from '@tauri-apps/api/event';
 
 
 
-Airtable.configure({
+/*Airtable.configure({
     apiKey: `${process.env.REACT_APP_AIRTABLE_API_KEY}`
 });
 
-const base = Airtable.base(`${process.env.REACT_APP_BASE_ID}`);
+const base = Airtable.base(`${process.env.REACT_APP_BASE_ID}`); */
 
 
 const navigation = [
@@ -470,7 +470,7 @@ const Sidebar = () => {
         console.log('filteredRecords=>', filteredRecords);
 
 
-        base('Render Nodes').update(
+     /*  base('Render Nodes').update(
             filteredRecords
             , function (err, records) {
                 if (err) {
@@ -485,7 +485,7 @@ const Sidebar = () => {
 
                 });
             });
-
+    */
 
     }
 
