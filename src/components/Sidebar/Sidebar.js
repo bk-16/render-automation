@@ -315,13 +315,25 @@ const Sidebar = () => {
 
     const renderOutput = async () => {
       const output = await new Command("powershell", [
-        "C:/Users/Public/render-automation/src-tauri/binaries/runOctaneRender-x86_64-pc-windows-msvc.ps1",
+        "S:/Render/runOctaneRender-x86_64-pc-windows-msvc.ps1",
         job_path,
         assets_path,
         output_path,
         output_dir,
         octane_path,
-      ]).execute();
+      ]);
+      
+      output.on('close', data => {
+        console.log(`command finished with code ${data.code} and signal ${data.signal}`)
+        console.log(`close Data${data}`)
+      });
+      
+      output.on('error', error => console.error(`command error: "${error}"`));
+      output.stdout.on('data', line => console.log(`command stdout: "${line}"`));
+      output.stderr.on('data', line => console.log(`command stderr: "${line}"`));
+      const child = await output.spawn();
+      console.log('pid:', child.pid);
+      
 
       /* const output1 = new Command('powershell', [
                 'binaries/runOctaneRender-x86_64-pc-windows-msvc.ps1',
