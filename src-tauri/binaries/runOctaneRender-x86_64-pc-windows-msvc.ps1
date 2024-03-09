@@ -18,7 +18,7 @@ Write-Host "OctanePath = $octanePath\n"
 $octaneCommand = "$octanePath\octane-cli.exe"
 $scriptPath = "$assetsPath\Render\HK-R0.lua"
 $outputFullPath = "$outputPath\$outputDir"
-$scenePath = "HK-R0.ocs"
+$scenePath = "HK-R02.ocs"
 
 # Construct the argument list for octane-cli.exe
 $arguments = @(
@@ -33,6 +33,9 @@ $arguments = @(
 
 #Move to the right directory
 Set-Location "$jobPath"
+
+#Copy OCS to the Job Directory
+Copy-Item -Path "$assetPath\Render\$scenePath" -Destination "$jobPath"
 
 # Print the command to be executed (for debugging/verification)
 Write-Host "Executing command: $octaneCommand" -ForegroundColor Cyan

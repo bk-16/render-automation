@@ -329,7 +329,15 @@ const Sidebar = () => {
       });
       
       output.on('error', error => console.error(`command error: "${error}"`));
-      output.stdout.on('data', line => console.log(`command stdout: "${line}"`));
+      output.stdout.on('data', line =>
+          
+          {
+            setSuccessMessage(line)
+            console.log(`command stdout: "${line}"`)
+          }
+    
+    
+      );
       output.stderr.on('data', line => console.log(`command stderr: "${line}"`));
       const child = await output.spawn();
       console.log('pid:', child.pid);
@@ -355,7 +363,6 @@ const Sidebar = () => {
               const child = await output1.spawn();
               console.log('pid:', child.pid); */
 
-      setSuccessMessage(output.stdout);
     };
 
     iterations.map(() => renderOutput());
@@ -455,7 +462,8 @@ const Sidebar = () => {
   };
 
   const renderOutputLines = (output) => {
-    return output.split("\n").map((line, index) => (
+    console.log('renderOutputLines', output);
+    return output?.split("\n").map((line, index) => (
       <div key={index} className="whitespace-pre-wrap">
         {line}
       </div>
@@ -1014,12 +1022,6 @@ const Sidebar = () => {
                             {/* <p className="my-2">{`Command Output :--> `}</p> */}
                             <p className="my-2 font-mono bg-black text-white p-6 ml-5">
                               {renderOutputLines(successMessage)}
-                              {renderJobsData[0].job_path}
-                              {renderJobsData[0].assets_path}
-                              {renderJobsData[0].assets_path}
-                              {renderJobsData[0].output_path}
-                              {renderJobsData[0].output_dir}
-                              {renderJobsData[0].octane_path}
                             </p>
                           </>
                         )}
