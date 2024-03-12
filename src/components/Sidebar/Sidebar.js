@@ -73,6 +73,7 @@ const Sidebar = () => {
   const [selectedNode, setSelectedNode] = useState("");
   const [renderJobs, setRenderJobs] = useState([]);
   const [renderJobsData, setRenderJobsData] = useState([]);
+  const [closedJobs, setClosedJobs] = useState([]);
 
   const [selectedRenderJobs, setSelectedRenderJobs] = useState([]);
   const [connectedClients, setConnectedClients] = useState([]);
@@ -118,7 +119,7 @@ const Sidebar = () => {
        // return await client.request(readItems('Rings'));
       }*/
 
-  const fetchData = async () => {
+  const fetchNodeData = async () => {
     const data = await client.request(
       readItems("render_nodes", {
         filter: {
@@ -158,6 +159,10 @@ const Sidebar = () => {
   };
 
   useEffect(() => {
+
+
+         fetchNodeData();
+         
     /*    base(`${process.env.REACT_APP_TABLE_NAME}`).select().firstPage(data => {
            console.log('data23=>', data);
            setRecords(data);
@@ -208,7 +213,6 @@ const Sidebar = () => {
                   console.error('Fetch error:', error);
               });*/
 
-    fetchData();
     //  getRenderNodesData();
 
     /*
@@ -312,9 +316,11 @@ const Sidebar = () => {
     console.log("maxJobs=>", maxJobs);
 
     const iterations = Array.from({ length: maxJobs }, (_, index) => index + 1);
-   
+    let closedJobsData = [];
+    console.log('ClosedJobsOuter', closedJobs);
 
-    const renderOutput = async () => {
+    const renderOutput = async (count) => {
+      console.log('count=>', count);
       const output = await new Command("powershell", [
         "R:/RenderFarm/Render/OctaneRunner.ps1",
         job_path,
@@ -327,6 +333,12 @@ const Sidebar = () => {
       output.on('close', data => {
         console.log(`command finished with code ${data.code} and signal ${data.signal}`)
         console.log(`close Data${data}`)
+        console.log('CloseCount=>', count);
+        console.log('closedJobsData', closedJobsData);
+        const closedJobs = closedJobsData.push(count);
+        console.log('closedJobs', closedJobs);
+       // closedJobsData.length > 0 && closedJobs.map(() => (renderOutput()));
+    
       });
       
       output.on('error', error => console.error(`command error: "${error}"`));
@@ -335,11 +347,18 @@ const Sidebar = () => {
           {
             setSuccessMessage(line)
             console.log(`command stdout: "${line}"`)
+            console.log('SuccessCount=>', count);
           }
     
     
       );
-      output.stderr.on('data', line => console.log(`command stderr: "${line}"`));
+      output.stderr.on('data', line =>
+       {
+        setErrorMessage(line);
+        console.log(`command stderr: "${line}"`)
+        console.log('errrorCount=>', count);
+     
+      });
       const child = await output.spawn();
       console.log('pid:', child.pid);
       
@@ -366,8 +385,44 @@ const Sidebar = () => {
 
     };
 
-    iterations.map(() => renderOutput());
+  
+
+  
+
+
+async function processQueue() {
+
+  
+ let queue = []; // Queue to store job indices
+
+ let closedJobs = []; // Array to store completed job indices
+  let maxJobs = 2;
+let totalJobs = 4;
+
+  while (queue.length < maxJobs && totalJobs > 0) {
+    const jobIndex = totalJobs--; // Decrement totalJobs first
+    queue.push(jobIndex);
+    await renderOutput(jobIndex)
+      .then(() => {
+        closedJobs.push(jobIndex);
+        queue.shift(); // Remove completed job from queue
+        processQueue(); // Check for next job
+      })
+      .catch((error) => {
+        console.error(`Error rendering job ${jobIndex}:`, error);
+        // Handle error (optional: retry, skip, etc.)
+        queue.shift(); // Remove failed job from queue (optional)
+        processQueue(); // Check for next job
+      });
+  }
+}
+
+// Start processing the queue
+processQueue();
+
+   // iterations.map((number, index) => renderOutput(index+1));
     console.log("CommandOutput", successMessage);
+ 
 
     // if (error) {
     //     console.error('Error:', error);
