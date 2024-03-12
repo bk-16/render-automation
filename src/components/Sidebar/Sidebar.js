@@ -312,10 +312,11 @@ const Sidebar = () => {
     console.log("maxJobs=>", maxJobs);
 
     const iterations = Array.from({ length: maxJobs }, (_, index) => index + 1);
+   
 
     const renderOutput = async () => {
       const output = await new Command("powershell", [
-        "S:/Render/runOctaneRender-x86_64-pc-windows-msvc.ps1",
+        "R:/RenderFarm/Render/OctaneRunner.ps1",
         job_path,
         assets_path,
         output_path,
