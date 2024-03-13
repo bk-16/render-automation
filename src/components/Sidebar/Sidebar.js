@@ -31,6 +31,7 @@ import {
 import { invoke } from "@tauri-apps/api/tauri";
 import {
   createDirectus,
+  updateItem,
   readItems,
   rest,
   staticToken,
@@ -40,11 +41,6 @@ import {
 import { Command } from "@tauri-apps/api/shell";
 import { listen } from "@tauri-apps/api/event";
 
-/*Airtable.configure({
-    apiKey: `${process.env.REACT_APP_AIRTABLE_API_KEY}`
-});
-
-const base = Airtable.base(`${process.env.REACT_APP_BASE_ID}`); */
 
 const navigation = [
   { name: "Dashboard", href: "dashboard", icon: HomeIcon, current: false },
@@ -79,45 +75,22 @@ const Sidebar = () => {
   const [connectedClients, setConnectedClients] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [maxJobs, setMaxJobs] = useState();
+  const [maxJobsCount, setMaxJobsCount] = useState();
+  const [nodeId, setNodeId] = useState();
+
+  const [jobsQueue, setJobsQueue] = useState([]);
+  const [runningJobs, setRunningJobs] = useState([]);
+
+
+
   const { id } = useParams();
   const content = id
     ? id.charAt(0).toUpperCase() + id.substring(1)
     : "Home page";
 
-  //     const client = createDirectus('http://localhost:8055/').with(staticToken('qmT4Gu0ok2irschFc5vh9QZs3RpyNL60')).with(rest({credentials:'include'}));
   const client = createDirectus("https://renderfarm.jewelpreview.com/")
     .with(staticToken("0AJzuH56xvfEl2lXCt0uu7Tz0aCmfY3y"))
     .with(rest());
-
-  /*    const client = createDirectus('http://localhost:8055/').with(rest());*/
-
-  /*  const fetchData = async() => {
-          fetch('http://localhost:8055/items/render_nodes',
-              {
-                  method: 'GET',
-                  headers: {
-                      'Authorization': `Bearer qmT4Gu0ok2irschFc5vh9QZs3RpyNL60`,
-                      'Content-Type': 'application/json',
-                      'Access-Control-Allow-Origin': '*',
-                      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                      'Access-Control-Allow-Headers': 'Content-Type',
-                  },
-              })
-              .then(response => {
-                  if (!response.ok) {
-                      throw new Error('Network response was not ok');
-                  }
-                  return response.json();
-              })
-              .then(data => {
-                  console.log('directusData', data);
-              })
-              .catch(error => {
-                  console.error('Fetch error:', error);
-              });
-       // return await client.request(readItems('Rings'));
-      }*/
 
   const fetchNodeData = async () => {
     const data = await client.request(
@@ -134,388 +107,323 @@ const Sidebar = () => {
     console.log("directsdata", data);
   };
 
-  const getRenderNodesData = () => {
-    fetch("https://api.airtable.com/v0/appduO4uHSNPZ4Ipa/Render Nodes", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${process.env.REACT_APP_AIRTABLE_API_KEY}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        const disconnected = data?.records?.filter(
-          (data) => data?.fields?.Status === "Disconnected"
-        );
-        setDisconnectedNodes(disconnected);
-      })
-      .catch((error) => {
-        console.error("Fetch error:", error);
-      });
-  };
-
   useEffect(() => {
-
-
          fetchNodeData();
-         
-    /*    base(`${process.env.REACT_APP_TABLE_NAME}`).select().firstPage(data => {
-           console.log('data23=>', data);
-           setRecords(data);
-       })*/
-
-    /*  base('Render Nodes').select({
-              // Selecting the first 3 records in Grid view:
-              maxRecords: 3,
-              view: "Grid view"
-          }).eachPage(function page(data, fetchNextPage) {
-              // This function (`page`) will get called for each page of records.
-
-              console.log('data', data)
-              data.forEach(function(record) {
-                  setRecords(record.fields);
-                  console.log('Retrieved', record.get('Node ID'));
-                  console.log('record', record.fields);
-              });
-
-              // To fetch the next page of records, call `fetchNextPage`.
-              // If there are more records, `page` will get called again.
-              // If there are no more records, `done` will get called.
-              fetchNextPage();
-
-          }, function done(err) {
-              if (err) { console.error(err); return; }
-          });*/
-
-    /*  fetch('https://api.airtable.com/v0/appduO4uHSNPZ4Ipa/Render Nodes',
-              {
-                  method: 'GET',
-                  headers: {
-                      'Authorization': `Bearer ${process.env.REACT_APP_AIRTABLE_API_KEY}`
-                  }
-              })
-              .then(response => {
-                  if (!response.ok) {
-                      throw new Error('Network response was not ok');
-                  }
-                  return response.json();
-              })
-              .then(data => {
-  
-                  const disconnected = data?.records?.filter((data) => data?.fields?.Status === "Disconnected");
-                  setDisconnectedNodes(disconnected);
-              })
-              .catch(error => {
-                  console.error('Fetch error:', error);
-              });*/
-
-    //  getRenderNodesData();
-
-    /*
-
-        fetch('https://api.airtable.com/v0/appduO4uHSNPZ4Ipa/RenderJobs',
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${process.env.REACT_APP_AIRTABLE_API_KEY}`
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                setRenderJobs(data?.records);
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-            });
-*/
-
-    /* newSocket.on("connectedClients", (data) => {
-            console.log("connectedClientsSidebar=>", data);
-
-            setConnectedClients(data);
-        });
-    */
   }, []);
 
   console.log("disconnectedNodes=>", disconnectedNodes);
   console.log("selectedNode=>", selectedNode);
   console.log("renderJobs=>", renderJobs);
 
-  const handleRenderJobsCompleted = async () => {
-    console.log("selectedRenderJobsIn=>", selectedRenderJobs);
 
-    /*  const dataDirPath = path.join(documentDir,'/Users/bhargav/Documents/test');
+  const handleOutputClose = (data) => {
+  //  console.log('Close event Count:', count);
+    console.log('Close data:', data);
+    // Add your specific logic here based on count and data
+  }
+
+  const handleSuccessOutput = (line) => {
+    setSuccessMessage(line)
+  //  console.log('Success event Count:', count);
+    console.log('Success data:', line);
+    // Add your specific logic here based on count and data
+  }
+
+  const handleErrorOutput = (line) => {
+
+     // const percentageMatch = line.split(" ")[1];
+      setErrorMessage(line);
+      console.log('percentageMatch', line);
+    
   
-          const exists = await path.exists(dataDirPath);
+  //  console.log('Error event Count:', count);
+    console.log('Error data:', line);
+    // Add your specific logic here based on count and data
+  }
+
+
+
+  // const handleJob = async(jobIndex) => {
+  //   // Your job handling logic here
+    
+  //   // Simulate some asynchronous operation (replace this with your actual job handling code)
+  //   return new Promise((resolve, reject) => {
+
+  //     // Simulating asynchronous operation with setTimeout
+  // //    setTimeout(() => {
+
+  //      // startJob(jobIndex)
+  //       console.log(`Job ${jobIndex} completed`);
+  //       // Simulate success
+  //       resolve();
+  //       // Simulate failure
+  //       // reject(new Error(`Job ${jobIndex} failed`));
+  //  //   }, 1000); // Simulate random processing time
+
+
+
+
+  //   });
+  // }
+
+
+
+// const nextJob = () => {
+
+//   getJobs(nodeId, maxJobsCount)
+
+// };
+
+    const getJobs = async(nodeId, maxJobsCount) => {
+
+      const renderJobs = await client.request(
+        readItems("render_jobs", {
+          filter: {
+            render_node: {
+              _eq: nodeId,
+            },
+            status: {
+              _eq: "ready to render",
+            }
+          },
+          limit: maxJobsCount | undefined,
+        })
+      );
   
-          if (exists) {
-              console.log('Data directory found:', dataDirPath);
-              // Use the directory path for further operations (e.g., reading or writing files)
-          } else {
-              console.log('Data directory not found.');
+      renderJobs.map((jobs, index) => {
+  
+        startJob(jobs)
+        console.log('renderJobsLoop', jobs );
+  
+      })
+  
+     // console.log('renderJobsData=>', renderJobs)
+  
+    }
+  
+   // getJobs(nodeId, maxJobsCount);
+
+
+
+  const startJob = async (renderJob) => {
+
+    console.log('renderJob+', await renderJob.id);
+
+
+    const renderJobsdata = await client.request(
+      readItems("render_jobs", {
+        filter: {
+          id: {
+            _eq: renderJob.id, // Target the job with ID 4
           }
+        },
+        limit: 1, // Retrieve only the matching job
+      })
+    );
+    
+   console.log('renderJobsdata=>', renderJobsdata);
+   
+       const jobToUpdate = renderJobsdata[0];
+       jobToUpdate.status = "initialising job";
+        console.log('jobToUpdate', jobToUpdate);
+
+
+      await client.request(updateItem("render_jobs", renderJob.id, jobToUpdate));
+
+
+      const {job_path, assets_path, output_path, output_dir, octane_path} = renderJob
+
+    const output = await new Command("powershell", [
+      "R:/RenderFarm/Render/OctaneRunner.ps1",
+      job_path,
+      assets_path,
+      output_path,
+      output_dir,
+      octane_path,
+    ]);
+    
+    const inProgressStatus = renderJobsdata[0];
+    jobToUpdate.status = "rendering in progress";
+    console.log('inProgressStatus', inProgressStatus);
+
+     await client.request(updateItem("render_jobs", renderJob.id, inProgressStatus));
+
+
+    output.on('close', data => {
+      console.log(`command finished with code ${data.code} and signal ${data.signal}`)
+      console.log(`close Data${data}`)
+    //  console.log('CloseCount=>', count);
+
+      handleOutputClose(data);
+
+     //  nextJob();
+  
+    });
+    
+    output.on('error', error => console.error(`command error: "${error}"`));
+    output.stdout.on('data', line =>
+        
+        {
+          handleSuccessOutput(line);
+         
+          console.log(`command stdout: "${line}"`)
+       //   console.log('SuccessCount=>', count);
+        }
   
   
-  */
+    );
+    output.stderr.on('data', async (line) =>
+     {
+      handleErrorOutput(line);
+      if(line === '100  % of the sequence'){
+        const jobToUpdate = renderJobsdata[0];
+        jobToUpdate.status = "completed";
+         console.log('jobToUpdate', jobToUpdate);
+ 
 
-    /*
-        selectedRenderJobs.forEach(data => {
-            data.fields.Status = "Completed"
-        });
+       await client.request(updateItem("render_jobs", renderJob.id, jobToUpdate));
 
-        const filteredRecords = selectedRenderJobs.map(record => {
-            const { createdTime, fields: { "JobID": jobId, "Created_On": created_on, "Updated_On": updated_on, ...fields }, ...rest } = record;
-            return { ...rest, fields };
-        });
+      }
+    
+      console.log(`command stderr: "${line}"`)
+   //   console.log('errrorCount=>', count);
+   
+    });
+    const child = await output.spawn();
+    console.log('pid:', child.pid);
 
-        console.log('selectedRenderJobsAfter=>', selectedRenderJobs);
-        base('RenderJobs').update(
-            filteredRecords
-            , function (err, records) {
-                if (err) {
-                    console.error(err);
-                    return;
-                }
-                records.forEach(function (record) {
-                    console.log('Status=>', record.get('Status'));
-                    if (record.get('Status') === 'Completed') {
-                        setTimeout(() => {
-                            setIsShow(true);
-                        }, 3000)
-                    }
 
-                });
-            });*/
+
+
+
+
+
+
+  };
+  
+
+  const handleRenderJobsCompleted = async () => {
+
+    console.log("selectedRenderJobsIn=>", selectedRenderJobs);
 
     const { job_path, assets_path, output_path, output_dir, octane_path } =
       renderJobsData[0];
-
-    // callRunOctaneRender(job_path, assets_path, output_path, output_dir, octane_path);
 
     console.log("job_path", job_path);
     console.log("assets_path", assets_path);
     console.log("output_path", output_path);
     console.log("output_dir", output_dir);
     console.log("octane_path", octane_path);
-    /*  let command = Command.sidecar('binaries/render');
-        const output = await command.execute();
 
-         console.log('commandOutput', output); */
+    // console.log("maxJobs=>", maxJobs);
 
-    // const output = await new Command('powershell', ["/C", ["binaries/runOctaneRender", job_path, assets_path, output_path, output_dir, octane_path]]).execute();
+    // const iterations = Array.from({ length: maxJobs }, (_, index) => index + 1);
 
-    console.log("maxJobs=>", maxJobs);
 
-    const iterations = Array.from({ length: maxJobs }, (_, index) => index + 1);
-    let closedJobsData = [];
-    console.log('ClosedJobsOuter', closedJobs);
+   // let closedJobsData = [];
+   // console.log('ClosedJobsOuter', closedJobs);
 
-    const renderOutput = async (count) => {
-      console.log('count=>', count);
-      const output = await new Command("powershell", [
-        "R:/RenderFarm/Render/OctaneRunner.ps1",
-        job_path,
-        assets_path,
-        output_path,
-        output_dir,
-        octane_path,
-      ]);
+//     const renderOutput = async (count) => {
+//       console.log('count=>', count);
+//       const output = await new Command("powershell", [
+//         "R:/RenderFarm/Render/OctaneRunner.ps1",
+//         job_path,
+//         assets_path,
+//         output_path,
+//         output_dir,
+//         octane_path,
+//       ]);
       
-      output.on('close', data => {
-        console.log(`command finished with code ${data.code} and signal ${data.signal}`)
-        console.log(`close Data${data}`)
-        console.log('CloseCount=>', count);
-        console.log('closedJobsData', closedJobsData);
-        const closedJobs = closedJobsData.push(count);
-        console.log('closedJobs', closedJobs);
-       // closedJobsData.length > 0 && closedJobs.map(() => (renderOutput()));
+//       output.on('close', data => {
+//         console.log(`command finished with code ${data.code} and signal ${data.signal}`)
+//         console.log(`close Data${data}`)
+//         console.log('CloseCount=>', count);
+
+//         handleOutputClose(count, data);
+// /*
+//         console.log('closedJobsData', closedJobsData);
+//         const closedJobs = closedJobsData.push(count);
+//         console.log('closedJobs', closedJobs);
+//         closedJobsData.length > 0 && closedJobs.map(() => (renderOutput())); */
     
-      });
+//       });
       
-      output.on('error', error => console.error(`command error: "${error}"`));
-      output.stdout.on('data', line =>
+//       output.on('error', error => console.error(`command error: "${error}"`));
+//       output.stdout.on('data', line =>
           
-          {
-            setSuccessMessage(line)
-            console.log(`command stdout: "${line}"`)
-            console.log('SuccessCount=>', count);
-          }
+//           {
+//             handleSuccessOutput(count, line);
+           
+//             console.log(`command stdout: "${line}"`)
+//             console.log('SuccessCount=>', count);
+//           }
     
     
-      );
-      output.stderr.on('data', line =>
-       {
-        setErrorMessage(line);
-        console.log(`command stderr: "${line}"`)
-        console.log('errrorCount=>', count);
-     
-      });
-      const child = await output.spawn();
-      console.log('pid:', child.pid);
+//       );
+//       output.stderr.on('data', line =>
+//        {
+//         handleErrorOutput(count, line);
       
+//         console.log(`command stderr: "${line}"`)
+//         console.log('errrorCount=>', count);
+     
+//       });
+//       const child = await output.spawn();
+//       console.log('pid:', child.pid);
 
-      /* const output1 = new Command('powershell', [
-                'binaries/runOctaneRender-x86_64-pc-windows-msvc.ps1',
-                job_path,    
-                assets_path, 
-                output_path, 
-                output_dir, 
-                octane_path  
-            ]);
 
-            output1.on('close', data => {
-                console.log(`command finished with code ${data.code} and signal ${data.signal}`)
-                console.log(`close Data${data}`)
-              });
-              output1.on('error', error => console.error(`command error: "${error}"`));
-              output1.stdout.on('data', line => console.log(`command stdout: "${line}"`));
-              output1.stderr.on('data', line => console.log(`command stderr: "${line}"`));
-              
-              const child = await output1.spawn();
-              console.log('pid:', child.pid); */
+//     };
 
-    };
+
+   //   startJob();
+  
+//     iterations.map((number, index) => renderOutput(index+1));
+//     console.log("CommandOutput", successMessage);
+
+
+//  async function processQueue() {
 
   
+//  let queue = []; // Queue to store job indices
 
+//  let closedJobs = []; // Array to store completed job indices
+// //let maxJobs = 3;
+//   let totalJobs = renderJobsData.length; 
+
+//   while (queue.length < maxJobs && totalJobs > 0) {
+//     const jobIndex = totalJobs--; // Decrement totalJobs first
+//     console.log('jobIndex', jobIndex);
+
+//     queue.push(jobIndex);
+//     await handleJob(jobIndex).then(() => {
+//         closedJobs.push(jobIndex);
+//         queue.shift(); // Remove completed job from queue
+//      //   processQueue(); // Check for next job
+//       })
+//       .catch((error) => {
+//         console.error(`Error rendering job ${jobIndex}:`, error);
+//         // Handle error (optional: retry, skip, etc.)
+//         queue.shift(); // Remove failed job from queue (optional)
+//         processQueue(); // Check for next job
+//       });
+//   }
+
+//   console.log('closedJobsQueue', closedJobs);
   
+//   console.log('queue', queue);
 
 
-async function processQueue() {
+// }
 
-  
- let queue = []; // Queue to store job indices
+// // Start processing the queue
+// processQueue();
 
- let closedJobs = []; // Array to store completed job indices
-  let maxJobs = 2;
-let totalJobs = 4;
 
-  while (queue.length < maxJobs && totalJobs > 0) {
-    const jobIndex = totalJobs--; // Decrement totalJobs first
-    queue.push(jobIndex);
-    await renderOutput(jobIndex)
-      .then(() => {
-        closedJobs.push(jobIndex);
-        queue.shift(); // Remove completed job from queue
-        processQueue(); // Check for next job
-      })
-      .catch((error) => {
-        console.error(`Error rendering job ${jobIndex}:`, error);
-        // Handle error (optional: retry, skip, etc.)
-        queue.shift(); // Remove failed job from queue (optional)
-        processQueue(); // Check for next job
-      });
-  }
-}
 
-// Start processing the queue
-processQueue();
-
-   // iterations.map((number, index) => renderOutput(index+1));
-    console.log("CommandOutput", successMessage);
- 
-
-    // if (error) {
-    //     console.error('Error:', error);
-    // } else {
-    //     console.log('Output:', output);
-    // }
-
-    // console.log("registering events")
-
-    /*
-        command.on('close', data => {
-            console.log(`Python subprocess ended with code ${data.code} and signal ${data.signal}`)
-            // submitBtn.removeAttribute("disabled")
-        })
-
-        command.on('error', error => console.error(`error: "${error}"`))
-        command.stdout.on('data', line => console.log("stdout:", line)
-            // if (line.startsWith("{")) {
-            //     let data = JSON.parse(line)
-            //     if (data.message === "processing") {
-            //         progress.update(progressBar, (data.current/ data.total) * 100)
-            //     } else if (data.message === "done") {
-            //         submitBtn.removeAttribute("disabled")
-            //     }
-            // }
-        )
-        command.stderr.on('data', line => console.log("stderr:", line))
-
-        // Start the command
-        console.log("Python subprocess started...")
-        let output = await command.execute()
-        console.log('output:', output)
-    */
-
-    /*
-        const callRunOctaneRender = async () => {
-        
-            // try {
-            //     await invoke('start_sidecar', "render");
-            //     console.log('Render command executed successfully');
-            //     setSuccessMessage('Render command executed successfully');
-            // } catch (error) {
-            //     console.error('Failed to execute render command:', error);
-            //     setErrorMessage(error);
-            // }
-
-           async function startSidecar() {
-                try {
-                    const response = await invoke('start_sidecar');
-                    console.log('Output:', response);
-                    setSuccessMessage(response);
-                } catch (error) {
-               
-                    console.error('Error starting sidecar:', error);
-                    setErrorMessage(error);
-                }
-
-                listen("message", (event) => {
-                    const message = event.payload;
-                    console.log('Message from Rust:', message);
-                    console.log('event.windowLabel:', event.windowLabel);
-                 
-                    // Handle the message here
-                });
-                
-            }
-
-            // listen("sidecar_output", (event) => {
-            //     const outputLine = event.payload;
-            //     setSuccessMessage(outputLine);
-            //     console.log('Output from sidecar:', outputLine);
-            // });
-
-            // invoke('sidecar_output').then((response) => {
-
-            //     setSuccessMessage(response)
-            //     console.log('Output:', response);
-            // }).catch((error) => {
-            //     setErrorMessage(error)
-            //     console.error('Error starting sidecar:', error);
-            // });
-            
-            startSidecar();
-    
-        }
-
-        callRunOctaneRender(); */
-
-    // setSuccessMessage(output);
-    //  setIsShow(true);
-
-    //  console.log('handleRenderJobsCompleted', nodeId);
   };
+
+  
+
 
   const renderOutputLines = (output) => {
     console.log('renderOutputLines', output);
@@ -528,15 +436,19 @@ processQueue();
 
   const setNodeConnected = async () => {
     console.log("selectedNode++", selectedNode);
+
+
     const renderNodeId = disconnected.filter(
       (node) => node?.name === selectedNode
     )[0]?.id;
+
+    setNodeId(renderNodeId);
     console.log("renderNodeId", renderNodeId);
 
     const maxJobsData = disconnected.filter(
       (node) => node?.name === selectedNode
     )[0]?.max_jobs;
-    setMaxJobs(maxJobsData);
+    setMaxJobsCount(maxJobsData);
 
     const renderJobsdata = await client.request(
       readItems("render_jobs", {
@@ -549,79 +461,11 @@ processQueue();
     );
 
     setRenderJobsData(renderJobsdata);
-    //  getRenderNodesData();
-    const selectedNodeData = disconnectedNodes.filter(
-      (item) => item?.fields?.Name === selectedNode
-    );
-    //    setNodeId(selectedNodeData[0]?.fields?.Node_ID);
-    //    console.log('selectedNodeData=>', );
-    disconnectedNodes.forEach((data) => {
-      data.fields.Status = "Connected";
-    });
-
-    const filteredRecords = selectedNodeData.map((record) => {
-      const {
-        createdTime,
-        fields: { Node_ID: nodeId, ...fields },
-        ...rest
-      } = record;
-      return { ...rest, fields };
-    });
-
-    const currentNodeId = selectedNodeData[0]?.fields?.Node_ID.toString();
-    const renderJobsData = renderJobs?.filter(
-      (data) =>
-        data?.fields?.Render_Node === currentNodeId &&
-        data?.fields?.Status === "Ready to Render"
-    );
-    setSelectedRenderJobs(renderJobsData);
-    console.log("renderJobsData==>", renderJobsData);
-
-    console.log("filteredRecords=>", filteredRecords);
-
-    /*  base('Render Nodes').update(
-            filteredRecords
-            , function (err, records) {
-                if (err) {
-                    console.error(err);
-                    return;
-                }
-                records.forEach(function (record) {
-                    console.log('Status=>', record.get('Status'));
-                    if (record.get('Status') === 'Connected') {
-                        appWindow.setTitle(selectedNode);
-                    }
-
-                });
-            });
-    */
+   
   };
 
   console.log("selectedRenderJobs==>", selectedRenderJobs);
 
-  const callRunOctaneRender = async (
-    Job_Path,
-    Assets_Path,
-    Output_Path,
-    Output_Dir,
-    Octane_Path
-  ) => {
-    console.log("def", Job_Path);
-    try {
-      await invoke("run_octane_render", {
-        job_path: Job_Path,
-        assets_path: Assets_Path,
-        output_path: Output_Path,
-        output_dir: Output_Dir,
-        octane_path: Octane_Path,
-      });
-      console.log("Render command executed successfully");
-      setSuccessMessage("Render command executed successfully");
-    } catch (error) {
-      console.error("Failed to execute render command:", error);
-      setErrorMessage(error);
-    }
-  };
 
   console.log("disconnected", disconnected);
 
@@ -944,29 +788,6 @@ processQueue();
             </div>
           </div>
 
-          {/*       <main className="py-10">
-                        <div className="px-auto py-auto sm:px-6 lg:px-8">
-                            <div className="mt-5 sm:flex sm:items-center">
-                                <div className="w-full sm:max-w-xs">
-                                    <label>Node name</label>
-                                    <input
-                                        onChange={(event) => handleNodeName(event)}
-                                        type="text"
-                                        name="node"
-                                        id="node"
-                                        className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                    />
-                                </div>
-                                <button
-                                    onClick={handleSubmit}
-                                    className="!mt-7 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:ml-3 sm:mt-0 sm:w-auto"
-                                >
-                                    Submit
-                                </button>
-                            </div>
-                        </div>
-                    </main> */}
-
           {isShow ? (
             <Form
               content={content}
@@ -1089,7 +910,9 @@ processQueue();
               </main>
               <Table
                 renderJobsData={renderJobsData}
-                handleRenderJobsCompleted={handleRenderJobsCompleted}
+                getJobs={getJobs}
+                nodeId={nodeId}
+                maxJobsCount={maxJobsCount}
               />
             </>
           )}

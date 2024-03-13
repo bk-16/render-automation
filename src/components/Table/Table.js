@@ -2,7 +2,7 @@ const people = [
     { name: 'Lindsay Walton', title: 'Front-end Developer', email: 'lindsay.walton@example.com', role: 'Member' },
 ]
 
-const Table = ({renderJobsData, handleRenderJobsCompleted}) => {
+const Table = ({renderJobsData, getJobs, nodeId, maxJobsCount}) => {
     console.log('renderJobsData=>', renderJobsData);
     return (
         <div className="px-4 sm:px-6 lg:px-8">
@@ -73,7 +73,7 @@ const Table = ({renderJobsData, handleRenderJobsCompleted}) => {
                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{data?.date_updated}</td>
                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{data?.date_created}</td>
                                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                            <a href="#" className="text-indigo-600 hover:text-indigo-900" onClick={() => handleRenderJobsCompleted()}>
+                                            <a href="#" className="text-indigo-600 hover:text-indigo-900" onClick={() => getJobs(nodeId, maxJobsCount)}>
                                                 Complete
                                             </a>
                                          {/*   <button
