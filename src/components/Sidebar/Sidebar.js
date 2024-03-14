@@ -83,6 +83,14 @@ const Sidebar = () => {
 
 
 
+  const [jobsCountInGetJobs, setJobsCountInGetJobs] = useState();
+  const [nodeIdInGetJobs, setNodeIdInGetJobs] = useState();
+  const [renderJobsDataInStartJob, setRenderJobsDataInStartJob] = useState();
+  const [closeData, setCloseData] = useState("");
+  const [callNextJobStatus, setCallNextJobStatus] = useState("");
+  
+
+
   const { id } = useParams();
   const content = id
     ? id.charAt(0).toUpperCase() + id.substring(1)
@@ -111,333 +119,42 @@ const Sidebar = () => {
          fetchNodeData();
   }, []);
 
+
   console.log("disconnectedNodes=>", disconnectedNodes);
   console.log("selectedNode=>", selectedNode);
   console.log("renderJobs=>", renderJobs);
 
 
+  const nextJob = () => {
+    console.log('called next job');
+    setCallNextJobStatus('called next job');
+    getJobs(nodeId, 1);
+  }
+
   const handleOutputClose = (data) => {
-  //  console.log('Close event Count:', count);
     console.log('Close data:', data);
-    // Add your specific logic here based on count and data
+    setCloseData(data);
+    nextJob();
   }
 
   const handleSuccessOutput = (line) => {
     setSuccessMessage(line)
-  //  console.log('Success event Count:', count);
     console.log('Success data:', line);
-    // Add your specific logic here based on count and data
   }
 
   const handleErrorOutput = (line) => {
-
-     // const percentageMatch = line.split(" ")[1];
       setErrorMessage(line);
-      console.log('percentageMatch', line);
-    
-  
-  //  console.log('Error event Count:', count);
-    console.log('Error data:', line);
-    // Add your specific logic here based on count and data
+      console.log('Error data:', line);
   }
 
 
-
-  // const handleJob = async(jobIndex) => {
-  //   // Your job handling logic here
-    
-  //   // Simulate some asynchronous operation (replace this with your actual job handling code)
-  //   return new Promise((resolve, reject) => {
-
-  //     // Simulating asynchronous operation with setTimeout
-  // //    setTimeout(() => {
-
-  //      // startJob(jobIndex)
-  //       console.log(`Job ${jobIndex} completed`);
-  //       // Simulate success
-  //       resolve();
-  //       // Simulate failure
-  //       // reject(new Error(`Job ${jobIndex} failed`));
-  //  //   }, 1000); // Simulate random processing time
-
-
-
-
-  //   });
-  // }
-
-
-
-// const nextJob = () => {
-
-//   getJobs(nodeId, maxJobsCount)
-
-// };
-
-    const getJobs = async(nodeId, maxJobsCount) => {
-
-      const renderJobs = await client.request(
-        readItems("render_jobs", {
-          filter: {
-            render_node: {
-              _eq: nodeId,
-            },
-            status: {
-              _eq: "ready to render",
-            }
-          },
-          limit: maxJobsCount | undefined,
-        })
-      );
   
-      renderJobs.map((jobs, index) => {
-  
-        startJob(jobs)
-        console.log('renderJobsLoop', jobs );
-  
-      })
-  
-     // console.log('renderJobsData=>', renderJobs)
-  
-    }
-  
-   // getJobs(nodeId, maxJobsCount);
+  const getJobs = async(nodeId, jobsCount) => {
 
 
+    console.log("selectedNodeInGetJobs", selectedNode);
 
-  const startJob = async (renderJob) => {
-
-    console.log('renderJob+', await renderJob.id);
-
-
-    const renderJobsdata = await client.request(
-      readItems("render_jobs", {
-        filter: {
-          id: {
-            _eq: renderJob.id, // Target the job with ID 4
-          }
-        },
-        limit: 1, // Retrieve only the matching job
-      })
-    );
-    
-   console.log('renderJobsdata=>', renderJobsdata);
-   
-       const jobToUpdate = renderJobsdata[0];
-       jobToUpdate.status = "initialising job";
-        console.log('jobToUpdate', jobToUpdate);
-
-
-      await client.request(updateItem("render_jobs", renderJob.id, jobToUpdate));
-
-
-      const {job_path, assets_path, output_path, output_dir, octane_path} = renderJob
-
-    const output = await new Command("powershell", [
-      "R:/RenderFarm/Render/OctaneRunner.ps1",
-      job_path,
-      assets_path,
-      output_path,
-      output_dir,
-      octane_path,
-    ]);
-    
-    const inProgressStatus = renderJobsdata[0];
-    jobToUpdate.status = "rendering in progress";
-    console.log('inProgressStatus', inProgressStatus);
-
-     await client.request(updateItem("render_jobs", renderJob.id, inProgressStatus));
-
-
-    output.on('close', data => {
-      console.log(`command finished with code ${data.code} and signal ${data.signal}`)
-      console.log(`close Data${data}`)
-    //  console.log('CloseCount=>', count);
-
-      handleOutputClose(data);
-
-     //  nextJob();
-  
-    });
-    
-    output.on('error', error => console.error(`command error: "${error}"`));
-    output.stdout.on('data', line =>
-        
-        {
-          handleSuccessOutput(line);
-         
-          console.log(`command stdout: "${line}"`)
-       //   console.log('SuccessCount=>', count);
-        }
-  
-  
-    );
-    output.stderr.on('data', async (line) =>
-     {
-      handleErrorOutput(line);
-      if(line === '100  % of the sequence'){
-        const jobToUpdate = renderJobsdata[0];
-        jobToUpdate.status = "completed";
-         console.log('jobToUpdate', jobToUpdate);
- 
-
-       await client.request(updateItem("render_jobs", renderJob.id, jobToUpdate));
-
-      }
-    
-      console.log(`command stderr: "${line}"`)
-   //   console.log('errrorCount=>', count);
-   
-    });
-    const child = await output.spawn();
-    console.log('pid:', child.pid);
-
-
-
-
-
-
-
-
-  };
-  
-
-  const handleRenderJobsCompleted = async () => {
-
-    console.log("selectedRenderJobsIn=>", selectedRenderJobs);
-
-    const { job_path, assets_path, output_path, output_dir, octane_path } =
-      renderJobsData[0];
-
-    console.log("job_path", job_path);
-    console.log("assets_path", assets_path);
-    console.log("output_path", output_path);
-    console.log("output_dir", output_dir);
-    console.log("octane_path", octane_path);
-
-    // console.log("maxJobs=>", maxJobs);
-
-    // const iterations = Array.from({ length: maxJobs }, (_, index) => index + 1);
-
-
-   // let closedJobsData = [];
-   // console.log('ClosedJobsOuter', closedJobs);
-
-//     const renderOutput = async (count) => {
-//       console.log('count=>', count);
-//       const output = await new Command("powershell", [
-//         "R:/RenderFarm/Render/OctaneRunner.ps1",
-//         job_path,
-//         assets_path,
-//         output_path,
-//         output_dir,
-//         octane_path,
-//       ]);
-      
-//       output.on('close', data => {
-//         console.log(`command finished with code ${data.code} and signal ${data.signal}`)
-//         console.log(`close Data${data}`)
-//         console.log('CloseCount=>', count);
-
-//         handleOutputClose(count, data);
-// /*
-//         console.log('closedJobsData', closedJobsData);
-//         const closedJobs = closedJobsData.push(count);
-//         console.log('closedJobs', closedJobs);
-//         closedJobsData.length > 0 && closedJobs.map(() => (renderOutput())); */
-    
-//       });
-      
-//       output.on('error', error => console.error(`command error: "${error}"`));
-//       output.stdout.on('data', line =>
-          
-//           {
-//             handleSuccessOutput(count, line);
-           
-//             console.log(`command stdout: "${line}"`)
-//             console.log('SuccessCount=>', count);
-//           }
-    
-    
-//       );
-//       output.stderr.on('data', line =>
-//        {
-//         handleErrorOutput(count, line);
-      
-//         console.log(`command stderr: "${line}"`)
-//         console.log('errrorCount=>', count);
-     
-//       });
-//       const child = await output.spawn();
-//       console.log('pid:', child.pid);
-
-
-//     };
-
-
-   //   startJob();
-  
-//     iterations.map((number, index) => renderOutput(index+1));
-//     console.log("CommandOutput", successMessage);
-
-
-//  async function processQueue() {
-
-  
-//  let queue = []; // Queue to store job indices
-
-//  let closedJobs = []; // Array to store completed job indices
-// //let maxJobs = 3;
-//   let totalJobs = renderJobsData.length; 
-
-//   while (queue.length < maxJobs && totalJobs > 0) {
-//     const jobIndex = totalJobs--; // Decrement totalJobs first
-//     console.log('jobIndex', jobIndex);
-
-//     queue.push(jobIndex);
-//     await handleJob(jobIndex).then(() => {
-//         closedJobs.push(jobIndex);
-//         queue.shift(); // Remove completed job from queue
-//      //   processQueue(); // Check for next job
-//       })
-//       .catch((error) => {
-//         console.error(`Error rendering job ${jobIndex}:`, error);
-//         // Handle error (optional: retry, skip, etc.)
-//         queue.shift(); // Remove failed job from queue (optional)
-//         processQueue(); // Check for next job
-//       });
-//   }
-
-//   console.log('closedJobsQueue', closedJobs);
-  
-//   console.log('queue', queue);
-
-
-// }
-
-// // Start processing the queue
-// processQueue();
-
-
-
-  };
-
-  
-
-
-  const renderOutputLines = (output) => {
-    console.log('renderOutputLines', output);
-    return output?.split("\n").map((line, index) => (
-      <div key={index} className="whitespace-pre-wrap">
-        {line}
-      </div>
-    ));
-  };
-
-  const setNodeConnected = async () => {
-    console.log("selectedNode++", selectedNode);
-
-
+    // Get maxJobs count
     const renderNodeId = disconnected.filter(
       (node) => node?.name === selectedNode
     )[0]?.id;
@@ -450,26 +167,154 @@ const Sidebar = () => {
     )[0]?.max_jobs;
     setMaxJobsCount(maxJobsData);
 
-    const renderJobsdata = await client.request(
+
+    // const renderJobsdata = await client.request(
+    //   readItems("render_jobs", {
+    //     filter: {
+    //       render_node: {
+    //         _eq: renderNodeId,
+    //       },
+    //     },
+    //   })
+    // );
+
+    // setRenderJobsData(renderJobsdata);
+
+
+    console.log('jobsCountInGetJobs=>', jobsCount);
+    console.log('nodeIdInGetJobs=>', nodeId);
+    setJobsCountInGetJobs(jobsCount);
+    setNodeIdInGetJobs(nodeId);
+
+  // Get jobs with limit
+    const renderJobs = await client.request(
       readItems("render_jobs", {
         filter: {
           render_node: {
-            _eq: renderNodeId,
+            _eq: nodeId,
           },
+          status: {
+            _eq: "ready to render",
+          }
         },
+        limit: jobsCount | undefined,
       })
     );
+    console.log("rrrrrrrrrrrrrrrrrr",renderJobs);
 
-    setRenderJobsData(renderJobsdata);
+    renderJobs.map((job, index) => {
+
+      startJob(job)
+      console.log('renderJobsLoop', job );
+
+    })
+
+  }
+
+
+  const startJob = async (renderJobs) => {
+
+    console.log('renderJobs', renderJobs);
+    setRenderJobsDataInStartJob(renderJobs);
+
+      // Set initialising job
+       const initialisingJobStatus = renderJobs;
+       initialisingJobStatus.status = "initialising job";
+       console.log('initialisingJobStatus', initialisingJobStatus);
+
+
+      await client.request(updateItem("render_jobs", renderJobs.id, initialisingJobStatus));
+
+
+      const {job_path, assets_path, output_path, output_dir, octane_path} = renderJobs
+
+    const output = await new Command("powershell", [
+      "R:/RenderFarm/Render/OctaneRunner.ps1",
+      job_path,
+      assets_path,
+      output_path,
+      output_dir,
+      octane_path,
+    ]);
+    
+    // Set rendering in progress
+    const inProgressStatus = renderJobs;
+    inProgressStatus.status = "rendering in progress";
+    console.log('inProgressStatus', inProgressStatus);
+
+     await client.request(updateItem("render_jobs", renderJobs.id, inProgressStatus));
+     
+    // Close event
+    output.on('close', data => {
+      console.log(`command finished with code ${data.code} and signal ${data.signal}`)
+      console.log(`close Data${data}`)
+      handleOutputClose(data);
+  
+    });
+    
+   // Success event
+    output.on('error', error => console.error(`command error: "${error}"`));
+    output.stdout.on('data', line =>
+        
+        {
+          handleSuccessOutput(line);
+          console.log(`stdout:-->"${line}"`)
+        }
+    );
+
+    // Error event
+    output.stderr.on('data', async (line) =>
+     {
+      handleErrorOutput(line);
+
+      const match = line.match(/\d+\.\d+/);
+      const progress = match ? match[0] : null;
+      console.log('progress=>', progress); 
+
+      // Set completed
+      if(progress === '100.0') {
+         const completedStatus = renderJobs;
+         completedStatus.status = "completed";
+         console.log('completedStatus', completedStatus);
+         await client.request(updateItem("render_jobs", renderJobs.id, completedStatus));
+       
+      }
+    
+      console.log(`stderr:-->"${line}"`)
+
    
+    });
+    const child = await output.spawn();
+    console.log('pid:', child.pid);
+
+
+
+  };
+  
+  
+
+
+  const renderOutputLines = (output) => {
+    console.log('renderOutputLines', output);
+    return output?.split("\n").map((line, index) => (
+      <div key={index} className="whitespace-pre-wrap">
+        {line}
+      </div>
+    ));
   };
 
-  console.log("selectedRenderJobs==>", selectedRenderJobs);
 
 
-  console.log("disconnected", disconnected);
+   
+   
+  
 
-  console.log("selectedNode==>", selectedNode);
+ // console.log("selectedRenderJobs==>", selectedRenderJobs);
+
+
+  console.log("disconnectedNode=>", disconnected);
+
+  console.log("selectedNodeName==>", selectedNode);
   console.log("renderJobsData==>", renderJobsData);
 
   return (
@@ -889,10 +734,10 @@ const Sidebar = () => {
                           </Listbox>
                         </div>
                         <button
-                          onClick={() => setNodeConnected()}
+                          onClick={() =>  getJobs(nodeId, maxJobsCount)}
                           className="!mt-7 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:ml-3 sm:mt-0 sm:w-auto"
                         >
-                          Connect
+                          Start
                         </button>
                         {successMessage && (
                           <>
@@ -908,12 +753,52 @@ const Sidebar = () => {
                   </div>
                 </div>
               </main>
-              <Table
+              <main className="py-10">
+                <div className="px-4 sm:px-6 lg:px-8">
+                  <div
+                    className="bg-whit mt-5 shadow sm:rounded-lg max-w-[800px]"
+                    style={{ border: "1px solid gray" }}
+                  >
+                    <div className="px-4 py-5 sm:p-6">
+                      <div className="mt-5 sm:flex sm:items-center">
+                        <div className="w-full sm:max-w-xs">
+
+                        { (
+                          <>
+                            {/* <p className="my-2">{`Command Output :--> `}</p> */}
+                            <p className="my-2 font-mono bg-black text-white p-6 ml-5">
+                            {`jobsCountInGetJobs--> ${jobsCountInGetJobs}`}
+                            </p>
+                            <p className="my-2 font-mono bg-black text-white p-6 ml-5">
+                            {`nodeIdInGetJobs--> ${nodeIdInGetJobs}` }
+                            </p>
+                            <p className="my-2 font-mono bg-black text-white p-6 ml-5">
+                            {`renderJobsDataInStartJob--> ${renderJobsDataInStartJob}` }
+                            </p>
+                            <p className="my-2 font-mono bg-black text-white p-6 ml-5">
+                            {`closeData--> ${closeData}` }
+                            </p>
+                            <p className="my-2 font-mono bg-black text-white p-6 ml-5">
+                            {`callNextJobStatus--> ${callNextJobStatus}` }
+                            </p>
+
+                            
+                          </>
+                        )}
+                         
+                         
+                        </div>                      
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </main>
+              {/* <Table
                 renderJobsData={renderJobsData}
                 getJobs={getJobs}
                 nodeId={nodeId}
                 maxJobsCount={maxJobsCount}
-              />
+              /> */}
             </>
           )}
         </div>
