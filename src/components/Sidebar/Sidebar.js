@@ -112,18 +112,11 @@ const Sidebar = () => {
     );
 
     setDisconnected(data);
-    console.log("directsdata", data);
   };
 
   useEffect(() => {
          fetchNodeData();
   }, []);
-
-
-  console.log("disconnectedNodes=>", disconnectedNodes);
-  console.log("selectedNode=>", selectedNode);
-  console.log("renderJobs=>", renderJobs);
-
 
   const nextJob = () => {
     console.log('called next job');
@@ -152,7 +145,7 @@ const Sidebar = () => {
   const getJobs = async(nodeId, jobsCount) => {
 
 
-    console.log("selectedNodeInGetJobs", selectedNode);
+    console.log("selectedNodeInGetJobs=>", selectedNode);
 
     // Get maxJobs count
     const renderNodeId = disconnected.filter(
@@ -160,7 +153,7 @@ const Sidebar = () => {
     )[0]?.id;
 
     setNodeId(renderNodeId);
-    console.log("renderNodeId", renderNodeId);
+    console.log("renderNodeIdGetJobs=>", renderNodeId);
 
     const maxJobsData = disconnected.filter(
       (node) => node?.name === selectedNode
@@ -200,13 +193,12 @@ const Sidebar = () => {
         limit: jobsCount | undefined,
       })
     );
-    console.log("rrrrrrrrrrrrrrrrrr",renderJobs);
+
+    console.log("renderJobsInGetJobs=>",renderJobs);
 
     renderJobs.map((job, index) => {
 
       startJob(job)
-      console.log('renderJobsLoop', job );
-
     })
 
   }
@@ -214,13 +206,13 @@ const Sidebar = () => {
 
   const startJob = async (renderJobs) => {
 
-    console.log('renderJobs', renderJobs);
+    console.log('renderJobsInStartJobs', renderJobs);
     setRenderJobsDataInStartJob(renderJobs);
 
       // Set initialising job
        const initialisingJobStatus = renderJobs;
        initialisingJobStatus.status = "initialising job";
-       console.log('initialisingJobStatus', initialisingJobStatus);
+       console.log('initialisingJobStatus=>', initialisingJobStatus);
 
 
       await client.request(updateItem("render_jobs", renderJobs.id, initialisingJobStatus));
@@ -240,14 +232,13 @@ const Sidebar = () => {
     // Set rendering in progress
     const inProgressStatus = renderJobs;
     inProgressStatus.status = "rendering in progress";
-    console.log('inProgressStatus', inProgressStatus);
+    console.log('inProgressStatus=>', inProgressStatus);
 
      await client.request(updateItem("render_jobs", renderJobs.id, inProgressStatus));
      
     // Close event
     output.on('close', data => {
       console.log(`command finished with code ${data.code} and signal ${data.signal}`)
-      console.log(`close Data${data}`)
       handleOutputClose(data);
   
     });
@@ -258,7 +249,6 @@ const Sidebar = () => {
         
         {
           handleSuccessOutput(line);
-          console.log(`stdout:-->"${line}"`)
         }
     );
 
@@ -275,27 +265,21 @@ const Sidebar = () => {
       if(progress === '100.0') {
          const completedStatus = renderJobs;
          completedStatus.status = "completed";
-         console.log('completedStatus', completedStatus);
+         console.log('completedStatus=>', completedStatus);
          await client.request(updateItem("render_jobs", renderJobs.id, completedStatus));
        
       }
     
-      console.log(`stderr:-->"${line}"`)
-
    
     });
     const child = await output.spawn();
     console.log('pid:', child.pid);
 
-
-
   };
   
-  
-
 
   const renderOutputLines = (output) => {
-    console.log('renderOutputLines', output);
+   // console.log('renderOutputLines', output);
     return output?.split("\n").map((line, index) => (
       <div key={index} className="whitespace-pre-wrap">
         {line}
@@ -303,17 +287,7 @@ const Sidebar = () => {
     ));
   };
 
-
-
-   
-   
-  
-
- // console.log("selectedRenderJobs==>", selectedRenderJobs);
-
-
   console.log("disconnectedNode=>", disconnected);
-
   console.log("selectedNodeName==>", selectedNode);
   console.log("renderJobsData==>", renderJobsData);
 
