@@ -40,6 +40,7 @@ import {
 } from "@directus/sdk";
 import { Command } from "@tauri-apps/api/shell";
 import { listen } from "@tauri-apps/api/event";
+import AppMenu from "../AppMenu/AppMenu";
 
 
 const navigation = [
@@ -767,6 +768,10 @@ const Sidebar = () => {
                   </div>
                 </div>
               </main>
+
+              <AppMenu />
+
+              
               {/* <Table
                 renderJobsData={renderJobsData}
                 getJobs={getJobs}

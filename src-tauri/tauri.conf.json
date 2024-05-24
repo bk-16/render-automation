@@ -12,6 +12,7 @@
     "version": "0.1.0"
   },
   "tauri": {
+
     "allowlist": {
       "all": true,
       "path": {
@@ -26,6 +27,16 @@
           {
             "name": "powershell",
             "cmd": "powershell",
+            "args": true
+          },
+          {
+            "name": "ls",
+            "cmd": "ls",
+            "args": true
+          },
+          {
+            "name": "echo",
+            "cmd": "echo",
             "args": true
           }
        
@@ -66,6 +77,11 @@
         "digestAlgorithm": "sha256",
         "timestampUrl": ""
       }
+    },
+    "systemTray": {
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": true,
+      "menuOnLeftClick": true
     },
     "security": {
       "csp": null
