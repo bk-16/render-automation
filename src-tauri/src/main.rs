@@ -108,7 +108,7 @@ use fork::{daemon, Fork};
 use std::{fs::metadata, path::PathBuf};
 use std::{sync::Mutex};
 // Manager is used by .get_window
-use tauri::{self, Manager, SystemTray, SystemTrayMenu, SystemTraySubmenu, CustomMenuItem, SystemTrayMenuItem, SystemTrayEvent};
+use tauri::{self, Manager, SystemTray, SystemTrayMenu, SystemTraySubmenu, CustomMenuItem, SystemTrayMenuItem, SystemTrayEvent, WindowEvent, AppHandle};
 
 #[derive(Clone, Serialize)]
 struct SingleInstancePayload {
@@ -218,17 +218,27 @@ fn main() {
             .add_item(CustomMenuItem::new("echo".to_string(), "echo"))
         ))
     // https://docs.rs/tauri/1.2.2/tauri/struct.CustomMenuItem.html#
-    .add_item(CustomMenuItem::new("quit".to_string(), "Quit"))
-    .add_item(CustomMenuItem::new("toggle-visibility".to_string(), "Hide Window"))
+    .add_item(CustomMenuItem::new("toggle-visibility".to_string(), "Open App"))
     .add_item(CustomMenuItem::new("mkdir".to_string(), "mkdir"))
     .add_item(CustomMenuItem::new("ls -lah".to_string(), "ls -lah"))
     .add_item(CustomMenuItem::new("echo".to_string(), "echo"))
-    .add_item(CustomMenuItem::new("toggle-tray-icon".to_string(), "Toggle the tray icon"));
+    .add_item(CustomMenuItem::new("toggle-tray-icon".to_string(), "Toggle the tray icon"))
+    .add_item(CustomMenuItem::new("quit".to_string(), "Quit"));
   // https://docs.rs/tauri/1.2.2/tauri/struct.SystemTray.html
   let system_tray = SystemTray::new().with_menu(tray_menu_en).with_id("main-tray");
 
   // main window should be invisible to allow either the setup delay or the plugin to show the window
   tauri::Builder::default()
+  
+      // Prevent close event and hide window app
+      .on_window_event(|event| match event.event() {
+        tauri::WindowEvent::CloseRequested { api, .. } => {
+          event.window().hide().unwrap();
+          api.prevent_close();
+        }
+      _ => {}
+    })
+  
     // system tray
     .system_tray(system_tray)
     .on_system_tray_event(|app, event| match event {
@@ -258,10 +268,10 @@ fn main() {
             // update menu item example
             if main_window.is_visible().unwrap() {
                 main_window.hide().unwrap();
-                item_handle.set_title("Show Window").unwrap();
+                item_handle.set_title("Open App").unwrap();
             } else {
                 main_window.show().unwrap();
-                item_handle.set_title("Hide Window").unwrap();
+                item_handle.set_title("Hide App").unwrap();
             }
           }
           _ => {}
