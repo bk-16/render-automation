@@ -108,7 +108,7 @@ use fork::{daemon, Fork};
 use std::{fs::metadata, path::PathBuf};
 use std::{sync::Mutex};
 // Manager is used by .get_window
-use tauri::{self, Manager, SystemTray, SystemTrayMenu, SystemTraySubmenu, CustomMenuItem, SystemTrayMenuItem, SystemTrayEvent, WindowEvent, AppHandle};
+use tauri::{self, Manager, SystemTray, SystemTrayMenu, SystemTraySubmenu, CustomMenuItem, SystemTrayMenuItem, SystemTrayEvent, WindowEvent, AppHandle, Icon};
 
 #[derive(Clone, Serialize)]
 struct SingleInstancePayload {
@@ -124,8 +124,13 @@ struct SystemTrayPayload {
 enum TrayState {
   NotPlaying,
   Paused,
-  Playing
+  Playing,
+  InProgress,
+  Completed,
+  Error
 }
+
+struct TrayStateHandle(Mutex<TrayState>);
 
 #[derive(Debug, Default, Serialize)]
 struct Example<'a> {
@@ -249,21 +254,26 @@ fn main() {
         let item_handle = app.tray_handle().get_item(&id);
         match id.as_str() {
           "quit" => { std::process::exit(0); }
-          // "toggle-tray-icon" => {
-          //     let tray_state_mutex = app.state::<Mutex<TrayState>>();
-          //     let mut tray_state = tray_state_mutex.lock().unwrap();
-          //     match *tray_state {
-          //       TrayState::NotPlaying => {
-          //         app.tray_handle().set_icon(tauri::Icon::Raw(include_bytes!("../icons/SystemTray2.ico").to_vec())).unwrap();
-          //         *tray_state = TrayState::Playing;
-          //       }
-          //       TrayState::Playing => {
-          //         app.tray_handle().set_icon(tauri::Icon::Raw(include_bytes!("../icons/SystemTray1.ico").to_vec())).unwrap();
-          //         *tray_state = TrayState::NotPlaying;
-          //       }
-          //       TrayState::Paused => {},
-          //     };
-          // }
+          "toggle-tray-icon" => {
+
+            /*  let tray_state_mutex = app.state::<Mutex<TrayState>>();
+              let mut tray_state = tray_state_mutex.lock().unwrap();
+              match *tray_state {
+                TrayState::NotPlaying => {
+                  app.tray_handle().set_icon(tauri::Icon::Raw(include_bytes!("../icons/green96x96.png").to_vec())).unwrap();
+                  *tray_state = TrayState::Playing;
+                }
+                TrayState::InProgress => {
+                  app.tray_handle().set_icon(tauri::Icon::Raw(include_bytes!("../icons/green96x96.png").to_vec())).unwrap();
+                  *tray_state = TrayState::Playing;
+                }
+                TrayState::Playing => {
+                  app.tray_handle().set_icon(tauri::Icon::Raw(include_bytes!("../icons/red96x96.png").to_vec())).unwrap();
+                  *tray_state = TrayState::NotPlaying;
+                }
+                TrayState::Paused => {},
+              }; */
+          }
           "toggle-visibility" => {
             // update menu item example
             if main_window.is_visible().unwrap() {
@@ -277,12 +287,13 @@ fn main() {
           _ => {}
         }
       }
+
       SystemTrayEvent::LeftClick { position: _, size: _, .. } => {
         let main_window = app.get_window("main").unwrap();
       //  main_window.emit("system-tray", SystemTrayPayload { message: "left-click".into() }).unwrap();
         println!("system tray received a left click");
 
-        // main_window.show().unwrap();
+       main_window.show().unwrap();
 
         
       }
@@ -294,12 +305,42 @@ fn main() {
       }
       _ => {}
     })
-    // custom commands
-    .invoke_handler(tauri::generate_handler![/* show_main_window, */update_tray_lang, process_file, show_in_folder])
+    
+    
+    .manage(TrayStateHandle(Mutex::new(TrayState::InProgress)))
+    .invoke_handler(tauri::generate_handler![/* show_main_window, */update_tray_lang, process_file, show_in_folder, update_tray_icon])
     .setup(|app| {
-        app.manage(Mutex::new(TrayState::NotPlaying));
+        app.manage(Mutex::new(TrayState::InProgress));
         Ok(())
     })
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
+}
+
+// Update tray icon based on status
+
+#[tauri::command]
+fn update_tray_icon(app_handle: tauri::AppHandle, status: String) {
+
+    let tray_handle = app_handle.tray_handle();
+    let tray_state_handle = app_handle.state::<TrayStateHandle>();
+
+    let mut tray_state = tray_state_handle.0.lock().unwrap();
+
+    match status.as_str() {
+
+        "InProgress" => {
+            tray_handle.set_icon(Icon::Raw(include_bytes!("../icons/orange96x96.png").to_vec())).unwrap();
+            *tray_state = TrayState::InProgress;
+        }
+        "Completed" => {
+          tray_handle.set_icon(Icon::Raw(include_bytes!("../icons/green96x96.png").to_vec())).unwrap();
+          *tray_state = TrayState::Completed;
+      }
+      "Error" => {
+        tray_handle.set_icon(Icon::Raw(include_bytes!("../icons/red96x96.png").to_vec())).unwrap();
+        *tray_state = TrayState::Error;
+    }
+        _ => {}
+    }
 }

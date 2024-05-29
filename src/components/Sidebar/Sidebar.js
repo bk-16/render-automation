@@ -89,7 +89,8 @@ const Sidebar = () => {
   const [renderJobsDataInStartJob, setRenderJobsDataInStartJob] = useState();
   const [closeData, setCloseData] = useState("");
   const [callNextJobStatus, setCallNextJobStatus] = useState("");
-  
+
+  const [currentStatus, setCurrentStatus] = useState('Completed');
 
 
   const { id } = useParams();
@@ -119,6 +120,20 @@ const Sidebar = () => {
          fetchNodeData();
   }, []);
 
+
+  // Call rust function and pass status to update tray icon
+  useEffect(() => {
+
+    const updateTrayIcon = async (status) => {
+
+      await invoke('update_tray_icon', { status });
+
+    };
+
+    updateTrayIcon(currentStatus);
+  }, [currentStatus]);
+
+  
   const nextJob = () => {
     console.log('called next job');
     setCallNextJobStatus('called next job');
